@@ -1,0 +1,70 @@
+version: '3'
+
+# Customize with the environment variables in the .env file included in this repo
+
+
+# Cloudflare Tunnel is optional, but it is an easy secure solution for external access that also provides certs
+# The value you set for APP_FULL_BASE_URL will have to resolve properly to the passbolt server.
+services:
+  #Database for Passbolt
+  db:
+    image: mariadb:10.3
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+      MYSQL_DATABASE: "$PASSBOLT_DB_NAME"
+      MYSQL_USER: "$PASSBOLT_DB_USERNAME"
+      MYSQL_PASSWORD: "$PASSBOLT_DB_PASSWORD"
+    volumes:
+      - passbolt_database_volume:/var/lib/mysql
+    networks:
+      - services
+  #Passbolt Server
+  passbolt:
+    image: passbolt/passbolt:latest-ce
+    hostname: passbolt
+    restart: unless-stopped
+    depends_on:
+      - db
+    # Local access - can be disabled if you are using a reverse proxy
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      # The following are required. Specify your own values in the .env file included.
+      # make sure APP_FULL_BASE_URL is resolvable to the passbolt server
+      APP_FULL_BASE_URL: "$APP_FULL_BASE_URL"
+      DATASOURCES_DEFAULT_HOST: "db"
+      DATASOURCES_DEFAULT_USERNAME: "$PASSBOLT_DB_USERNAME"
+      DATASOURCES_DEFAULT_PASSWORD: "$PASSBOLT_DB_PASSWORD"
+      DATASOURCES_DEFAULT_DATABASE: "$PASSBOLT_DB_NAME"
+      EMAIL_TRANSPORT_DEFAULT_HOST: "$EMAIL_TRANSPORT_DEFAULT_HOST"
+      EMAIL_TRANSPORT_DEFAULT_PORT: "$EMAIL_TRANSPORT_DEFAULT_PORT"
+      EMAIL_TRANSPORT_DEFAULT_USERNAME: $EMAIL_TRANSPORT_DEFAULT_USERNAME"
+      # If using google then it must be an applicaiton specific password (Google -> Manage account -> Security > App passwords)
+      EMAIL_TRANSPORT_DEFAULT_PASSWORD: "$EMAIL_TRANSPORT_DEFAULT_PASSWORD"
+      EMAIL_TRANSPORT_DEFAULT_TLS: "$EMAIL_TRANSPORT_DEFAULT_TLS"
+      EMAIL_DEFAULT_FROM: "$EMAIL_DEFAULT_FROM"
+    volumes:
+      - gpg_volume:/etc/passbolt/gpg
+      - jwt_volume:/etc/passbolt/jwt
+    command: ["/usr/bin/wait-for.sh", "-t", "0", "db:3306", "--", "/docker-entrypoint.sh"]
+    networks:
+      - services
+  # Only required if you want to use the cloudflare tunnel for external access
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token $CLOUDFLARE_TUNNEL_TOKEN
+    networks:
+      - services
+
+# Docker Volumes
+volumes:
+  passbolt_database_volume:
+  gpg_volume:
+  jwt_volume:
+
+networks:
+  services:
+
