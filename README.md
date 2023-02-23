@@ -1,5 +1,6 @@
 # Passbolt Tutorial
 
+## Full Video Tutorial
 <youtube url>
   
 ## Setup
@@ -15,4 +16,12 @@
   
 ## CloudFlare Tunnel setup
 
-to do: add information on the setup here!
+1. CloudFlare -> Zero Trust -> Accesss -> Tunnels
+  
+2. Click: Create a Tunnel
+  
+3. Name your Tunnel: Give the tunnel a name -> Next
+  
+4. Install Connector: Copy the key provided to the .env file `CLOUDFLARE_TUNNEL_TOKEN` -> Next
+  
+5. Fill in domain/subdomain and for Type: http://passbolt:80  -> Done
