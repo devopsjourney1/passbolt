@@ -1,6 +1,6 @@
 # Passbolt Tutorial
 ## Full Video Tutorial
-[See the full YouTube tutorial here](https://youtu.be/EtSLohbOy0U)
+[See the full YouTube tutorial here](https://youtu.be/O76Lye5D-n8)
   
 ## Setup
   
